@@ -1,0 +1,20 @@
+Embedding Techniques
+import os
+from dotenv import load_dotenv
+load_dotenv(
+
+import os
+from dotenv import load_dotenv
+load_dotenv() 
+#https://python.langchain.com/docs/integrations/text_embedding/
+
+os.environ["OPENAI_API_KEY"]=os.getenv("OPENAI_API_KEY")
+
+from langchain_openai import OpenAIEmbeddings
+
+embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+
+Text to vectors
+text="This is a tutorial on OPENAI embeddings"
+query_result=embeddings.embed_query(text)
+query_result

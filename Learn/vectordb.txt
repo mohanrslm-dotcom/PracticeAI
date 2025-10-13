@@ -1,0 +1,300 @@
+vectordb
+conda create -p env python=3.10 -y
+source activte ./env
+
+
+pip instal -r requirements
+
+import os
+from dotenv import load_dotenv
+load_dotenv() 
+
+print("mohan")
+load_dotenv()
+
+import os
+os.environ['HF_TOKEN']=os.getenv("HF_TOKEN")
+
+from langchain_huggingface import HuggingFaceEmbeddings
+embeddings=HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+
+embeddings.embed_query("hello AI")
+
+from sklearn.metrics.pairwise import cosine_similarity
+
+
+
+documents=["what is a capital of USA?",
+           "Who is a president of USA?",
+           "Who is a prime minister of India?"]
+
+my_query="Narendra modi is prime minister of india?"
+
+document_embedding=embeddings.embed_documents(documents)
+
+document_embedding
+
+query_embedding=embeddings.embed_query(my_query)
+
+len(query_embedding)
+
+## perform similarity search when query comes
+cosine_similarity([query_embedding],document_embedding) ##angle b/w two matches, directions,nearest match
+
+from sklearn.metrics.pairwise import euclidean_distances ##, closer distance ones
+
+euclidean_distances([query_embedding], document_embedding)
+
+import faiss
+from langchain_community.vectorstores import FAISS
+from langchain_community.docstore.in_memory import InMemoryDocstore
+
+## create index before storing in vector db
+index=faiss.IndexFlatL2(384)  ## 384 dimension created index using L2 distance, can also be created using cosine similarity. 
+
+
+index
+
+vector_store=FAISS(
+    embedding_function=embeddings,
+    index=index,
+    docstore=InMemoryDocstore(),
+    index_to_docstore_id={},
+)
+
+##addd data to vector store
+vector_store.add_texts(["AI is future","AI is powerful","Dogs are cute"])
+
+vector_store.index_to_docstore_id
+
+results = vector_store.similarity_search("Tell me about AI", k=3) ##K=3 means -results 3 records
+
+results
+
+## vector db is set of numbers, required for RAG architecture, similarity search and create retrieval pipeline
+
+Data converted to chunks and embedded and stored in vector db
+## user queries vector DB, query is embedded and performs vector operation, similarity search and finds relevant data and Prompt+user query+retrieved are sent  to LLM 
+## output sent to user
+## cannot perform operations on Sql/No-sql, like similarity search, can be done only in  vector db
+
+##
+Vector DB---o find similarity b/w two vectors
+In-memory database
+Ondisk dat base 
+
+above two are own server
+
+Cloud DB -- AWS,Azure,GCP -- configured in server
+RAG application
+
+Index -- store data in vector DB
+Similarity search ##
+
+PDF--Pages(chunking)---Document object -- inside doc object we have Page content and metadata(info about data), 
+
+Stores in vector DB(Page content and metadata(info about data)
+
+Create Index using this data
+Flatindex -- navigate every records -- exact match -- pick-up best nearest doc/ most similar record using similarity search or L2
+HNS index ---approx. match -- graph based index
+IVF(inverted file index) ---approx. match --- cluster based
+
+## perform similarity search when query comes
+
+To create  retrieval pipeline we need vector DB, cannot perform similarity search on Sql/NoSQL database
+
+Upto 1L -- indexflat 2
+upto 1mn - ivf or HNS
+>1MN indexivf or indexhns
+
+# from uuid import uuid4
+from langchain_core.documents import Document
+
+document_1 = Document(
+    page_content="I had chocolate chip pancakes and scrambled eggs for breakfast this morning.",
+    metadata={"source": "tweet"},
+)
+
+document_2 = Document(
+    page_content="The weather forecast for tomorrow is cloudy and overcast, with a high of 62 degrees.",
+    metadata={"source": "news"},
+)
+
+document_3 = Document(
+    page_content="Building an exciting new project with LangChain - come check it out!",
+    metadata={"source": "tweet"},
+)
+
+document_4 = Document(
+    page_content="Robbers broke into the city bank and stole $1 million in cash.",
+    metadata={"source": "news"},
+)
+
+document_5 = Document(
+    page_content="Wow! That was an amazing movie. I can't wait to see it again.",
+    metadata={"source": "tweet"},
+)
+
+document_6 = Document(
+
+
+    page_content="Is the new iPhone worth the price? Read this review to find out.",
+    metadata={"source": "website"},
+)
+
+
+
+document_7 = Document(
+    page_content="The top 10 soccer players in the world right now.",
+    metadata={"source": "website"},
+)
+
+document_8 = Document(
+    page_content="LangGraph is the best framework for building stateful, agentic applications!",
+    metadata={"source": "tweet"},
+)
+
+document_9 = Document(
+    page_content="The stock market is down 500 points today due to fears of a recession.",
+    metadata={"source": "news"},
+)
+
+document_10 = Document(
+    page_content="I have a bad feeling I am going to get deleted :(",
+    metadata={"source": "tweet"},
+)
+
+documents = [
+    document_1,
+    document_2,
+    document_3,
+    document_4,
+    document_5,
+    document_6,
+    document_7,
+    document_8,
+    document_9,
+    document_10,
+]
+
+
+##Data injestion  embedding
+index=faiss.IndexFlatIP(384)
+vector_store=FAISS(
+    embedding_function=embeddings,
+    index=index,
+    docstore=InMemoryDocstore(),
+    index_to_docstore_id={},
+)
+
+
+vector_store.add_documents(documents=documents)
+
+vector_store.similarity_search(
+    "LangChain provides abstractions to make working with LLMs easy",
+    k=2 #hyperparameter
+    
+)
+
+
+vector_store.similarity_search(
+    "LangChain provides abstractions to make working with LLMs easy",
+    #k=2 #hyperparameter,
+    filter={"source":{"$eq": "tweet"}}
+    
+)
+
+result=vector_store.similarity_search(
+    "LangChain provides abstractions to make working with LLMs easy",
+    #k=2 #hyperparameter,
+    filter={"source":"news"}
+    
+)
+
+result[0].metadata
+
+result[0].page_content
+
+## to use inside RAG pipeline
+retriever=vector_store.as_retriever(search_kwargs={"k": 3})
+
+retriever.invoke("LangChain provides abstractions to make working with LLMs easy")
+
+vector_store.save_local("today's class faiss index")
+
+new_vector_store=FAISS.load_local(
+  "today's class faiss index",embeddings ,allow_dangerous_deserialization=True
+)
+
+new_vector_store.similarity_search("langchain")
+
+from langchain_community.document_loaders import PyPDFLoader
+
+FILE_PATH="F:/AgenticAI/2.3-Embeddings/2.3-Embeddings/llama2.pdf"
+
+loader=PyPDFLoader(FILE_PATH)
+len(loader.load())
+
+pages=loader.load()
+
+pages = []
+async for page in loader.alazy_load():
+    pages.append(page)
+
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,#hyperparameter
+    chunk_overlap=50 #hyperparemeter
+)
+
+split_docs = splitter.split_documents(pages)
+
+len(split_docs)
+
+index=faiss.IndexFlatIP(384)
+vector_store=FAISS(
+    embedding_function=embeddings,
+    index=index,
+    docstore=InMemoryDocstore(),
+    index_to_docstore_id={},
+)
+
+vector_store.add_documents(documents=split_docs)
+
+retriever=vector_store.as_retriever(
+    search_kwargs={"k": 10} #hyperparameter
+)
+
+retriever.invoke("what is llama model?")
+
+from langchain_google_genai import ChatGoogleGenerativeAI
+model=ChatGoogleGenerativeAI(model='gemini-1.5-flash')
+
+from langchain import hub
+prompt = hub.pull("rlm/rag-prompt")
+
+import pprint
+
+pprint.pprint(prompt.messages)
+
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+
+
+context(retriever),prompt(hub),model(google),parser(langchain)
+
+def format_docs(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
+
+
+rag_chain = (
+    {"context": retriever | format_docs, "question": RunnablePassthrough()}
+    | prompt
+    | model
+    | StrOutputParser()
+)
+
+
+rag_chain.invoke("what is llama model?")

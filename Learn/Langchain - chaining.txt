@@ -1,0 +1,58 @@
+Langchain - chaining -- sequential execution of process
+Retrieve --- summarise---answer o/p
+Read document - split text to chunks --context window--limiting
+
+Vector database  -- sematic search
+prompt--llm--context
+Directed ascyclic
+
+Langraph -- stateful multi-AI agents - agents talking to each other to solve complex workflows
+memory management is quite good in langchain
+Tasks
+Nodes -- prompt
+Edges
+Graph - maintains info
+
+##Dataloadeer -langchaintextloader
+### Data Ingestion or Data Loader -https://python.langchain.com/docs/integrations/document_loaders/
+
+### text loader
+from langchain_community.document_loaders.text import TextLoader
+
+loader=TextLoader('speech.txt')
+loader
+
+text_documents=loader.load()
+text_documents
+
+### Read a PDf file
+from langchain_community.document_loaders import PyPDFLoader
+loader=PyPDFLoader('syllabus.pdf')
+docs=loader.load()
+docs
+
+##pypdf in requirements.txt
+
+## Web based loader
+from langchain_community.document_loaders import WebBaseLoader
+import bs4
+loader=WebBaseLoader(web_paths=("https://python.langchain.com/docs/integrations/document_loaders/",),)
+docs=loader.load()
+docs
+
+## Web based loader
+from langchain_community.document_loaders import WebBaseLoader
+import bs4
+loader=WebBaseLoader(web_paths=("https://lilianweng.github.io/posts/2023-06-23-agent/",),
+                     bs_kwargs=dict(parse_only=bs4.SoupStrainer(
+                         class_=("post-title","post-content","post-header")
+                     ))
+                     )
+
+doc=loader.load()
+doc
+
+#Arxiv
+from langchain_community.document_loaders import ArxivLoader
+docs = ArxivLoader(query="1706.03762", load_max_docs=2).load()
+docs

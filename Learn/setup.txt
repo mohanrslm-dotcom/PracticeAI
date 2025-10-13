@@ -1,0 +1,27 @@
+Pip - Package manager - install and remove libraries - writes/understands code
+Conda - manage package, conda handles all dependencies
+
+Editor and IDE
+Write/Edit code
+IDE - write/edit/debug/run
+VS code - has a lot of extensions
+Link conda to VS code
+
+
+Load env variable to your code
+
+
+requirements.txt
+pydantic
+python-dotenv
+langchain
+langchain-openai
+langchain-groq
+langchain-core (integrations)
+langchain-community(integrations)
+
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+pip install -r requirements.txt

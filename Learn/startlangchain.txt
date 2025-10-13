@@ -1,0 +1,103 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+os.getenv("LANGCHAIN_PROJECT")
+
+os.getenv("LANGCHAIN_API_KEY")
+
+os.environ["OPENAI_API_KEY"]=os.getenv("OPENAI_API_KEY")
+os.environ["GROQ_API_KEY"]=os.getenv("GROQ_API_KEY")
+
+## Langsmith Tracking And Tracing -- captures all actions errors, costs -- in langsmith
+os.environ["LANGCHAIN_API_KEY"]=os.getenv("LANGCHAIN_API_KEY")
+os.environ["LANGCHAIN_PROJECT"]=os.getenv("LANGCHAIN_PROJECT")
+os.environ["LANGCHAIN_TRACING_V2"]="true"
+
+from langchain_openai import ChatOpenAI
+
+## call any openAI model - create llm variable -restart everytime after setting env
+llm=ChatOpenAI(model="o1-mini")
+print(llm)
+
+result=llm.invoke("What is Agentic AI")
+print(result)
+
+print(result.content)
+
+from langchain_groq import ChatGroq
+model=ChatGroq(model="qwen-qwq-32b")
+model.invoke("Hi My name is Mohan")
+
+##AImessage -llm is AIbot, any message from llm is AImessage
+
+### Prompt Engineering - predefined own prompt and use it, system prompt
+from langchain_core.prompts import ChatPromptTemplate
+
+prompt=ChatPromptTemplate.from_messages(
+    [
+        ("system","You are an expert AI Engineer. Provide me answer based on the question"),
+        ("user","{input}") ##user content to llm
+    ]
+)
+prompt
+
+##combine prompt to llm  -- prompt-model-output
+### chaining -- prompt output passed to model
+chain=prompt|model
+chain
+
+response=chain.invoke({"input":"Can you tell me something about Langsmith"})
+print(response.content) ##content variable has output
+
+##runnable sequence in langsmith
+
+##outputparser - how output should be visible
+from langchain_core.output_parsers import StrOutputParser
+
+output_parser=StrOutputParser()
+
+chain=prompt|model|output_parser
+
+response=chain.invoke({"input":"Can you tell me about Langsmith"})
+print(response)
+
+##string
+
+from langchain_core.output_parsers import JsonOutputParser
+
+output_parser=JsonOutputParser()
+output_parser.get_format_instructions()
+
+ ### OutputParser
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.prompts import PromptTemplate
+
+output_parser=JsonOutputParser()
+
+prompt=PromptTemplate(
+    template="Answer the user query \n {format_instruction}\n {query}\n ",
+    input_variables=["query"],
+    partial_variables={"format_instruction":output_parser.get_format_instructions()},
+)
+
+##chatprompttemplate for conversation or list of messages, stringprompttemplate for single message
+
+chain=prompt|model|output_parser
+response=chain.invoke({"query":"Can you tell me about Langsmith?"})
+print(response)
+
+### Prompt Engineering
+from langchain_core.prompts import ChatPromptTemplate
+
+prompt=ChatPromptTemplate.from_messages(
+    [
+        ("system","You are an expert AI Engineer.Provide the response in json.Provide me answer based on the question"),
+        ("user","{input}")
+    ]
+)
+prompt
+
+chain=prompt|model|output_parser
+response=chain.invoke({"input":"Can you tell me about Langsmith?"})
+print(response)
